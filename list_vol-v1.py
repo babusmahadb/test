@@ -42,16 +42,17 @@ def disp_vol(cluster: str, svm_name: str, headers_inc: str):
     tmp = dict(get_volumes(cluster, svm_name, headers_inc))
     vols = tmp['records']
     tab = tt.Texttable()
-    header = (['Volume name', 'Volume UUID', 'Vserver Name', 'Vol State', ' Vol Type'])
+    header = (['Volume name', 'Volume UUID', 'Vserver Name', 'Vol State', ' Vol Type', 'Junction Path', 'Read IOPS', 'Write IOPS', 'Other IOPS', 'Total IOPS', 'Read throughput', 'Write throughput', 'Other throughput', 'Total throughput'])
     tab.header(header)
-    tab.set_cols_width([18,50,25,15,15])
-    tab.set_cols_align(['c','c','c','c','c'])
+    tab.set_cols_width([18,40,20,15,15,25,5,5,5,5,10,10,10,10])
+    tab.set_cols_align(['c','c','c','c','c','c','c','c','c','c','c','c','c','c'])
     for volumelist in vols:
         ctr = ctr + 1
         vol = volumelist['name']
         uuid = volumelist['uuid']
-        url1 = "https://{}/api/storage/volumes/{}".format(cluster, uuid)
-        response = requests.get(url1, headers=headers_inc, verify=False)
+        #print(vol)
+        url = "https://{}/api/storage/volumes/{}".format(cluster, uuid)
+        response = requests.get(url, headers=headers_inc, verify=False)
         vuid = response.json()
         tmp2 = dict(vuid)
         sv = tmp2['svm']
@@ -59,15 +60,57 @@ def disp_vol(cluster: str, svm_name: str, headers_inc: str):
         vsrv = sv['name']
         state = tmp2['state']
         tier = tmp2['type']
-        #jucpath = na['nas.path']
-        #row = [vol]
-        tab.add_row([vol,uuid,vsrv,state,tier])
-        tab.set_cols_width([18,50,25,15,15])
-        tab.set_cols_align(['c','c','c','c','c'])
+        url1 = "https://{}/api/storage/volumes?uuid={}&fields=nas.path".format(cluster, uuid)
+        response = requests.get(url1, headers=headers_inc, verify=False)
+        nas = response.json()
+        ng = dict(nas)
+        #print("ng",ng)
+        ngi = ng['records']
+        #print("ngi",ngi)
+        for keys in ngi:
+            chk = keys.get('nas')
+            if chk is None:
+                path = "NA"
+            else:
+                val = keys['nas']
+                tval = dict(val)
+                chk1 = tval['path']
+                if (chk1 is None):
+                    path = "NA"
+                else:
+                    path = tval['path']
+        staturl = "https://{}/api/storage/volumes?uuid={}&fields=statistics.iops_raw.read,statistics.iops_raw.write,statistics.iops_raw.other,statistics.iops_raw.total,statistics.throughput_raw.total,statistics.throughput_raw.read,statistics.throughput_raw.write,statistics.throughput_raw.other".format(cluster, uuid)
+        response = requests.get(staturl, headers=headers_inc, verify=False)
+        stats = response.json()
+        dstat = dict(stats)
+        #print(dmetr)
+        rstat = dstat['records']
+        #print(rmetr)
+        for keys in rstat:
+            val = keys['statistics']
+            tval = dict(val)
+            iops = tval['iops_raw']
+            ival = dict(iops)
+            riops = ival['read']
+            wiops = ival['write']
+            oiops = ival['other']
+            tiops = ival['total']
+            thrp = tval['throughput_raw']
+            ithrp = dict(thrp)
+            rthrp = ithrp['read']
+            wthrp = ithrp['write']
+            othrp = ithrp['other']
+            tthrp = ithrp['total']
+            #for key in val:
+            #    print(key)
+            #    tiops = tval['total']
+        tab.add_row([vol,uuid,vsrv,state,tier,path,riops,wiops,oiops,tiops,rthrp,wthrp,othrp,tthrp])
+        tab.set_cols_width([18,40,20,15,15,25,5,5,5,5,10,10,10,10])
+        tab.set_cols_align(['c','c','c','c','c','c','c','c','c','c','c','c','c','c'])
     print("Number of Volumes for this Storage Tenant: {}".format(ctr))
     setdisplay = tab.draw()
     print(setdisplay)
-
+    #print(uuid)
 
 def parse_args() -> argparse.Namespace:
     """Parse the command line arguments from the user"""
