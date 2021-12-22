@@ -42,7 +42,7 @@ def disp_vol(cluster: str, svm_name: str, headers_inc: str):
     tmp = dict(get_volumes(cluster, svm_name, headers_inc))
     vols = tmp['records']
     tab = tt.Texttable()
-    header = (['Volume name', 'Volume UUID', 'DP Configured', 'Source Path', ' Dest Path'])
+    header = (['Volume name', 'Volume UUID', 'SnapMirror(Y/N)', 'Source Path', ' Dest Path'])
     tab.header(header)
     tab.set_cols_width([18,50,25,15,15])
     tab.set_cols_align(['c','c','c','c','c'])
@@ -68,7 +68,7 @@ def disp_vol(cluster: str, svm_name: str, headers_inc: str):
             if chk is None:
                 scrp = "NA"
                 desp = "NA"
-                isp = "NA"
+                isp = "No"
             else:
                 val = keys['source']
                 tval = dict(val)
