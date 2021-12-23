@@ -1,0 +1,5 @@
+cluster1-01 vol0
+cluster1-02 vol0
+svm1_cluster1 sql1_db1
+cluster2-02 vol0
+svm1_cluster2 sql1_log_dest
