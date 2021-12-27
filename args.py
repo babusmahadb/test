@@ -25,6 +25,7 @@ from getpass import getpass
 import logging
 import texttable as tt
 import requests
+import openpyxl as xl
 import urllib3 as ur
 ur.disable_warnings()
 
@@ -37,8 +38,9 @@ def get_volumes(cluster: str, volume_name: str, headers_inc: str):
 
 def usr_int(volume: str, svm_name: str):
     """Get cluster info from inventory using user inputs"""
-    usr = open("C:\Users\Administrator.DEMO\Documents\GitHub\test\Cust_Input.txt", 'r')
-    
+    usr_data = open("C:\Users\Administrator.DEMO\Desktop\svmvol.xlsx", 'r')
+    int_data = open("C:\Users\Administrator.DEMO\Desktop\clstrsvm.xlsx", 'r')
+    cons_data = open("C:\Users\Administrator.DEMO\Desktop\clstrsvm.xlsx", 'r')
     
     return volume,cluster
 
@@ -131,5 +133,5 @@ if __name__ == "__main__":
         'content-type': "application/json",
         'accept': "application/json"
     }
-    usr_int(ARGS.volume, ARGS.svm_name, headers)
+    usr_int(ARGS.volume, ARGS.svm_name)
     disp_vol(ARGS.cluster, ARGS.svm_name, headers)

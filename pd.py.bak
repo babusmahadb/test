@@ -1,0 +1,10 @@
+import pandas as pd
+
+f1 = "C:\Users\Administrator.DEMO\Desktop\svmvol.xlsx"
+
+xl1 = pd.excelfile(f1)
+
+print(xl1.sheet_names)
+
+df1 = xl1.parse('Sheet1')
+

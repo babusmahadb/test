@@ -25,16 +25,23 @@ from getpass import getpass
 import logging
 import texttable as tt
 import requests
+import openpyxl as xl
 import urllib3 as ur
 ur.disable_warnings()
 
 
-def get_volumes(cluster: str, svm_name: str, headers_inc: str):
+def get_volumes(cluster: str, volume_name: str, headers_inc: str):
     """Get Volumes"""
-    url = "https://{}/api/storage/volumes/?svm.name={}".format(cluster, svm_name)
+    url = "https://{}/api/storage/volumes/uuid={}".format(cluster, volume_name)
     response = requests.get(url, headers=headers_inc, verify=False)
     return response.json()
 
+def usr_int(volume: str, svm_name: str):
+    """Get cluster info from inventory using user inputs"""
+    usr_data = open("C:\Users\Administrator.DEMO\Desktop\svmvol.xlsx", 'r')
+    
+    
+    return volume,cluster
 
 def disp_vol(cluster: str, svm_name: str, headers_inc: str):
     """Display Volumes"""
@@ -125,5 +132,5 @@ if __name__ == "__main__":
         'content-type': "application/json",
         'accept': "application/json"
     }
-
+    usr_int(ARGS.volume, ARGS.svm_name)
     disp_vol(ARGS.cluster, ARGS.svm_name, headers)
