@@ -87,91 +87,98 @@ def vol_meta(cluster: str, svm_name: str, volume_name: str, headers_inc: str):
     return vol_name,vol_uuid
     
     
-#def disp_vol(cluster: str, svm_name: str, volume_name: str, headers_inc: str)
+def nas_path(cluster: str, volume_uuid: str, headers_inc: str):
     
-#def disp_vol(cluster: str, svm_name: str, volume_name: str, headers_inc: str):
-#    """Display Volumes"""
-#    #ctr = 0
-#    #tmp = dict(get_volumes(cluster, svm_name ,volume_name, headers_inc))
-#    #vols = tmp['records']
-#    url = "https://{}/api/storage/volumes/?svm.name={}&name={}".format(cluster,svm_name,volume_name)
-#    response = requests.get(url, headers=headers_inc, verify=False)
-#    volume = response.json()
-#    volumercd = dict(volume)
-#    tmpr = volumercd['records']
-#    for i in tmpr:
-#        volumelist = dict(i)
-#    #print(volumelist)
-#    tab = tt.Texttable()
-#    header = (['Volume name', 'Volume UUID', 'Vserver Name', 'Vol State', ' Vol Type', 'Junction Path', 'Read IOPS', 'Write IOPS', 'Other IOPS', 'Total IOPS', 'Read throughput', 'Write throughput', 'Other throughput', 'Total throughput'])
-#    tab.header(header)
-#    tab.set_cols_width([18,40,20,15,15,25,5,5,5,5,10,10,10,10])
-#    tab.set_cols_align(['c','c','c','c','c','c','c','c','c','c','c','c','c','c'])
-#    #for volumelist in vols:
-#    #ctr = ctr + 1
-#    vol = volumelist['name']
-#    uuid = volumelist['uuid']
-#    #print(vol)
-#    url = "https://{}/api/storage/volumes/{}".format(cluster, uuid)
-#    response = requests.get(url, headers=headers_inc, verify=False)
-#    vuid = response.json()
-#    tmp2 = dict(vuid)
-#    sv = tmp2['svm']
-#    na = tmp2['nas']
-#    vsrv = sv['name']
-#    state = tmp2['state']
-#    tier = tmp2['type']
-#    url1 = "https://{}/api/storage/volumes?uuid={}&fields=nas.path".format(cluster, uuid)
-#    response = requests.get(url1, headers=headers_inc, verify=False)
-#    nas = response.json()
-#    ng = dict(nas)
-#    #print("ng",ng)
-#    ngi = ng['records']
-#    #print("ngi",ngi)
-#    for keys in ngi:
-#        chk = keys.get('nas')
-#        if chk is None:
-#            path = "NA"
-#        else:
-#            val = keys['nas']
-#            tval = dict(val)
-#            chk1 = tval['path']
-#            if (chk1 is None):
-#                path = "NA"
-#            else:
-#                path = tval['path']
-#    staturl = "https://{}/api/storage/volumes?uuid={}&fields=statistics.iops_raw.read,statistics.iops_raw.write,statistics.iops_raw.other,statistics.iops_raw.total,statistics.throughput_raw.total,statistics.throughput_raw.read,statistics.throughput_raw.write,statistics.throughput_raw.other".format(cluster, uuid)
-#    response = requests.get(staturl, headers=headers_inc, verify=False)
-#    stats = response.json()
-#    dstat = dict(stats)
-#    #print(dmetr)
-#    rstat = dstat['records']
-#    #print(rmetr)
-#    for keys in rstat:
-#        val = keys['statistics']
-#        tval = dict(val)
-#        iops = tval['iops_raw']
-#        ival = dict(iops)
-#        riops = ival['read']
-#        wiops = ival['write']
-#        oiops = ival['other']
-#        tiops = ival['total']
-#        thrp = tval['throughput_raw']
-#        ithrp = dict(thrp)
-#        rthrp = ithrp['read']
-#        wthrp = ithrp['write']
-#        othrp = ithrp['other']
-#        tthrp = ithrp['total']
-#        #for key in val:
-#        #    print(key)
-#        #    tiops = tval['total']
-#    tab.add_row([vol,uuid,vsrv,state,tier,path,riops,wiops,oiops,tiops,rthrp,wthrp,othrp,tthrp])
-#    tab.set_cols_width([18,40,20,15,15,25,5,5,5,5,10,10,10,10])
-#    tab.set_cols_align(['c','c','c','c','c','c','c','c','c','c','c','c','c','c'])
-#    #print("Number of Volumes for this Storage Tenant: {}".format(ctr))
-#    setdisplay = tab.draw()
-#    print(setdisplay)
-#    #print(uuid)
+    """ Pulls Junction Path & Vserver details"""
+    
+    vol_url = "https://{}/api/storage/volumes/{}".format(cluster, volume_uuid)
+    vol_response = requests.get(vol_url, headers=headers_inc, verify=False)
+    vol_json = vol_response.json()
+    
+    vol_dt = dict(vol_json)
+    tmp = vol_dt['svm']
+    vsrv = tmp['name']
+    state = vol_dt['state']
+    tier = vol_dt['type']
+    
+    nas_url = "https://{}/api/storage/volumes?uuid={}&fields=nas.path".format(cluster, volume_uuid)
+    response = requests.get(nas_url, headers=headers_inc, verify=False)
+    nas_json = response.json()
+    
+    nas_dt = dict(nas_json)
+    nas_rd = nas_dt['records']
+    for keys in nas_rd:
+        chk = keys.get('nas')
+        if chk is None:
+            path = "NA"
+        else:
+            val = keys['nas']
+            nas_jp = dict(val)
+            chk1 = nas_jp['path']
+            if (chk1 is None):
+                path = "NA"
+            else:
+                path = nas_jp['path']
+                
+                
+    return vsrv, state, tier, path
+
+def vol_stats(cluster: str, volume_uuid: str, headers_inc: str):
+    
+    """ Pulls Volume's Raw Statistical IOPS & Throughput details"""
+        
+    stat_url = "https://{}/api/storage/volumes?uuid={}&fields=statistics.iops_raw.read,statistics.iops_raw.write,statistics.iops_raw.other,statistics.iops_raw.total,statistics.throughput_raw.total,statistics.throughput_raw.read,statistics.throughput_raw.write,statistics.throughput_raw.other".format(cluster, volume_uuid)
+    response = requests.get(stat_url, headers=headers_inc, verify=False)
+    stat_json = response.json()
+    
+    stat_dt = dict(stat_json)
+    stat_rd = stat_dt['records']
+    for keys in stat_rd:
+        val = keys['statistics']
+        st_js = dict(val)
+        iops = st_js['iops_raw']
+        ival = dict(iops)
+        riops = ival['read']
+        wiops = ival['write']
+        oiops = ival['other']
+        tiops = ival['total']
+        thrp = st_js['throughput_raw']
+        ithrp = dict(thrp)
+        rthrp = ithrp['read']
+        wthrp = ithrp['write']
+        othrp = ithrp['other']
+        tthrp = ithrp['total']
+
+    return riops,wiops,oiops,tiops,rthrp,wthrp,othrp,tthrp
+
+def snap_mirr(cluster: str, svm_name: str, volume_name: str, headers_inc: str):
+    
+    """ Pulls Volume's Snapmirror details"""
+        
+    snap_url = "https://{}/api/snapmirror/relationships?list_destinations_only=true&source.path={}:{}&return_records=true&return_timeout=15".format(cluster, svm_name, volume_name)
+    response = requests.get(snap_url, headers=headers_inc, verify=False)
+    snap_json = response.json()
+    
+    snap_dt = dict(snap_json)
+    snap_rd = snap_dt['records']
+    # isp is "is_proctedted", scrp is "source_path", desp is "destination_path"
+    isp = scrp = desp = "NA"
+    if snap_rd:
+        for keys in snap_rd:
+            src_val = keys['source']
+            src_p = dict(src_val)
+            scrp = src_p['path']
+            des_val = keys['destination']
+            des_p = dict(des_val)
+            desp = des_p['path']
+            isp = "Yes"
+    else:
+        scrp = "NA"
+        desp = "NA"
+        isp = "No"
+            
+    return isp,scrp,desp
+
     
 if __name__ == "__main__":
 
@@ -203,7 +210,15 @@ if __name__ == "__main__":
         volume_name = row[1]
         svm_name = row[2]
         mv = vol_meta(cluster, svm_name, volume_name, headers)
-        print(mv)
+        js_vol_name = mv[0]
+        js_vol_uuid = mv[1]
+        np = nas_path(cluster,js_vol_uuid, headers)
+        st = vol_stats(cluster,js_vol_uuid, headers)
+        sp = snap_mirr(cluster,svm_name,js_vol_name, headers)
+        
+        tmp = mv + np + st + sp
+        print(tmp)
+        
       
 
 
