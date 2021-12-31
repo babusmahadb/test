@@ -8,7 +8,7 @@ Usage: list_volumes_property.py [-h] -vol VOLUME_NAME -vs SVM_NAME [-u API_USER]
 """
 
 import pandas as pd
-import openpyxl
+import openpyxl as xl
 import urllib3 as ur
 ur.disable_warnings()
 
@@ -35,46 +35,52 @@ def find_clstr():
 
     return cons_df
     
-#def parse_args() -> argparse.Namespace:
-#    """Parse the command line arguments from the user"""
-#
-#    parser = argparse.ArgumentParser(
-#        description="This script will list volumes in a SVM")
-#    parser.add_argument(
-#        "-vol", "--volume", required=True, help="Volume Name")
-#    parser.add_argument(
-#        "-vs", "--svm_name", required=True, help="SVM Name"
-#    )
-#    parser.add_argument(
-#        "-u",
-#        "--api_user",
-#        default="admin",
-#        help="API Username")
-#    parser.add_argument("-p", "--api_pass", help="API Password")
-#    parsed_args = parser.parse_args()
-#
-#    # collect the password without echo if not already provided
-#    if not parsed_args.api_pass:
-#        parsed_args.api_pass = getpass()
-#
-#    return parsed_args
+def parse_args() -> argparse.Namespace:
+    """Parse the command line arguments from the user"""
+
+    parser = argparse.ArgumentParser(
+        description="This script will list volumes in a SVM")
+    parser.add_argument(
+        "-vol", "--volume", required=True, help="Volume Name")
+    parser.add_argument(
+        "-vs", "--svm_name", required=True, help="SVM Name"
+    )
+    parser.add_argument(
+        "-u",
+        "--api_user",
+        default="admin",
+        help="API Username")
+    parser.add_argument("-p", "--api_pass", help="API Password")
+    parsed_args = parser.parse_args()
+
+    # collect the password without echo if not already provided
+    if not parsed_args.api_pass:
+        parsed_args.api_pass = getpass()
+
+    return parsed_args
 
 
 if __name__ == "__main__":
-    #logging.basicConfig(
-    #    level=logging.INFO,
-    #    format="[%(asctime)s] [%(levelname)5s] [%(module)s:%(lineno)s] %(message)s",
-    #)
-    #ARGS = parse_args()
-    #BASE_64_STRING = base64.encodebytes(
-    #    ('%s:%s' %
-    #     (ARGS.api_user, ARGS.api_pass)).encode()).decode().replace('\n', '')
-    #
-    #headers = {
-    #    'authorization': "Basic %s" % BASE_64_STRING,
-    #    'content-type': "application/json",
-    #    'accept': "application/json"
-    #}
-    find_clstr()
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(asctime)s] [%(levelname)5s] [%(module)s:%(lineno)s] %(message)s",
+    )
+    ARGS = parse_args()
+    BASE_64_STRING = base64.encodebytes(
+        ('%s:%s' %
+         (ARGS.api_user, ARGS.api_pass)).encode()).decode().replace('\n', '')
     
-    #disp_vol(ARGS.cluster, ARGS.svm_name, headers)
+    headers = {
+        'authorization': "Basic %s" % BASE_64_STRING,
+        'content-type': "application/json",
+        'accept': "application/json"
+    }
+    
+    # Pulls Cluster information using uservol.xls and inventory.xls using find_clstr() and place data to clstrvol.xls 
+    cons_df = find_clstr()
+   
+    for index, row in cons_df.iterrows():
+        cluster = row[0]
+        volume_name = row[1]
+        disp_vol(cluster, volume_name, headers)
