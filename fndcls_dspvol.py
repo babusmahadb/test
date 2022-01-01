@@ -20,8 +20,8 @@ ur.disable_warnings()
 
 def find_clstr():
     """Get cluster info from inventory using user inputs"""
-    usr_data = "C:\\Users\\Administrator.DEMO\\Downloads\\test\\svmvol.xlsx"
-    inv_data = "C:\\Users\\Administrator.DEMO\\Downloads\\test\\clstrsvm.xlsx"
+    usr_data = "C:\\Users\\Administrator.DEMO\\Documents\\GitHub\\test\\test\\svmvol.xlsx"
+    inv_data = "C:\\Users\\Administrator.DEMO\\Documents\\GitHub\\test\\test\\clstrsvm.xlsx"
        
     usr_df = pd.read_excel(usr_data)
     inv_df = pd.read_excel(inv_data)
@@ -35,7 +35,7 @@ def find_clstr():
     #print(usr_df)
     
     cons_df = usr_df[['clstr_match','Vol_Name','SVM_Name']]
-    cons_df.to_excel("C:\\Users\\Administrator.DEMO\\Downloads\\test\\clstrvol.xlsx", sheet_name='clstrvol', index=False, header=False)
+    cons_df.to_excel("C:\\Users\\Administrator.DEMO\\Documents\\GitHub\\test\\test\\clstrvol.xlsx", sheet_name='clstrvol', index=False, header=False)
     
     #print(cons_df)
 
@@ -200,9 +200,9 @@ if __name__ == "__main__":
     # Pulls Cluster information using uservol.xls and inventory.xls using find_clstr() and place data to clstrvol.xls 
     cons_df = find_clstr()
     
-    res_data = "C:\\Users\\Administrator.DEMO\\Downloads\\test\\Voldetails.xlsx"
-    res_df = pd.read_excel(res_data)
-    result_csv = res_df.to_excel("C:\\Users\\Administrator.DEMO\\Downloads\\test\\Voldetails.xlsx", sheet_name = 'Volume Details', columns = None, index = None)
+    #res_data = "C:\\Users\\Administrator.DEMO\\Documents\\GitHub\\test\\test\\Voldetails.xlsx"
+    #res_df = pd.read_excel(res_data)
+    #result_csv = res_df.to_excel("C:\\Users\\Administrator.DEMO\\Documents\\GitHub\\test\\test\\Voldetails.xlsx", sheet_name = 'Volume Details', columns = None, index = None)
     #result_csv.columns = ['Volume Name','Volume UUID']
     
     for index, row in cons_df.iterrows():
