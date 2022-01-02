@@ -11,8 +11,8 @@ import openpyxl as xl
 
 def find_clstr():
     """Get cluster info from inventory using user inputs"""
-    usr_data = "C:\\Users\\Administrator.DEMO\\Documents\\GitHub\\test\\test\\svmvol.xlsx"
-    inv_data = "C:\\Users\\Administrator.DEMO\\Documents\\GitHub\\test\\test\\clstrsvm.xlsx"
+    usr_data = "C:\\Users\\Administrator.DEMO\\Documents\\GitHub\\test\\svmvol.xlsx"
+    inv_data = "C:\\Users\\Administrator.DEMO\\Documents\\GitHub\\test\\clstrsvm.xlsx"
        
     usr_df = pd.read_excel(usr_data)
     inv_df = pd.read_excel(inv_data)
@@ -26,7 +26,7 @@ def find_clstr():
     #print(usr_df)
     
     cons_df = usr_df[['clstr_match','Vol_Name','SVM_Name']]
-    cons_df.to_excel("C:\\Users\\Administrator.DEMO\\Documents\\GitHub\\test\\test\\clstrvol.xlsx", sheet_name='clstrvol', index=False, header=False)
+    cons_df.to_excel("C:\\Users\\Administrator.DEMO\\Documents\\GitHub\\test\\clstrvol.xlsx", sheet_name='clstrvol', index=False, header=False)
     
     #print(cons_df)
 
