@@ -199,12 +199,9 @@ if __name__ == "__main__":
     
     # Pulls Cluster information using uservol.xls and inventory.xls using find_clstr() and place data to clstrvol.xls 
     cons_df = find_clstr()
-    
-    #res_data = "C:\\Users\\Administrator.DEMO\\Documents\\GitHub\\test\\test\\Voldetails.xlsx"
-    #res_df = pd.read_excel(res_data)
-    #result_csv = res_df.to_excel("C:\\Users\\Administrator.DEMO\\Documents\\GitHub\\test\\test\\Voldetails.xlsx", sheet_name = 'Volume Details', columns = None, index = None)
-    #result_csv.columns = ['Volume Name','Volume UUID']
-    
+
+    df = pd.DataFrame([], columns=None, index=None)
+    df.to_excel("C:\\Users\\Administrator.DEMO\\Documents\\GitHub\\test\\VolumeDetails.xlsx", sheet_name='VolDetails', index=False, header=True)
     for index, row in cons_df.iterrows():
         cluster = row[0]
         volume_name = row[1]
@@ -215,10 +212,13 @@ if __name__ == "__main__":
         np = nas_path(cluster,js_vol_uuid, headers)
         st = vol_stats(cluster,js_vol_uuid, headers)
         sp = snap_mirr(cluster,svm_name,js_vol_name, headers)
-        
         tmp = mv + np + st + sp
-        print(tmp)
-        
-      
+        tmp_df = pd.DataFrame(data=tmp,columns=None,index=None)
+        df = df.append(tmp_df.T, ignore_index=True)
+   
+    df.to_excel("C:\\Users\\Administrator.DEMO\\Documents\\GitHub\\test\\VolumeDetails.xlsx", sheet_name='VolDetails', index=False, header=['Volume name', 'Volume UUID', 'Vserver Name', 'Vol State', ' Vol Type', 'Junction Path', 'Read IOPS', 'Write IOPS', 'Other IOPS', 'Total IOPS', 'Read throughput', 'Write throughput', 'Other throughput', 'Total throughput', 'SnapMirror(Y/N)','Source Path', 'Destination Path'])  
+    
+  
+  
 
 
