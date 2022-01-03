@@ -201,7 +201,7 @@ if __name__ == "__main__":
     cons_df = find_clstr()
 
     df = pd.DataFrame([], columns=None, index=None)
-    df.to_excel("C:\\Users\\Administrator.DEMO\\Documents\\GitHub\\test\\VolumeDetails.xlsx", sheet_name='VolDetails', index=False, header=True)
+    
     for index, row in cons_df.iterrows():
         cluster = row[0]
         volume_name = row[1]
