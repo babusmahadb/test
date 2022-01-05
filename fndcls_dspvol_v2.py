@@ -199,78 +199,66 @@ def nfs_connect(cluster: str, volume_name: str, headers_inc: str):
     return volume_name, nfs_conn
     
     
-def qtr_quo(cluster: str, volume_name: str, headers_inc: str):
+def qtr_quo(cluster: str, volume_uuid: str, headers_inc: str):
     """Get Qtree and Quota details of Volumes """
-    qtree_url="https://{}/api/storage/qtrees/".format(cluster)
+    qtree_url="https://{}/api/storage/qtrees/{}/*".format(cluster,volume_uuid)
     response = requests.get(qtree_url, headers=headers_inc, verify=False)
     qtree_json = response.json()
     
     qtree_dt=dict(qtree_json)
     qtree_rd=qtree_dt['records']
-    
-    qtree2=[]
+    output=[]
     for i in qtree_rd:
+        #print("Dicti",i)
         qtree=dict(i)
         qtree_name=qtree['name']
-        qtree_vol=qtree['volume']
-        qtree1_dt=dict(qtree_vol)
-        qtq_url = "https://{}/api/storage/volumes?name={}".format(cluster,volume_name)
-        response = requests.get(qtq_url, headers=headers_inc, verify=False)
-        qtq_json = response.json()    
+        qid = qtree['id']
+        #print(qtree_name)
+        qvol=qtree['volume']
+        qvol_dt=dict(qvol)
+        qvol_n=qvol_dt['name']
+        #print("Vol"+ qvol_n +"Qtree"+ qtree_name)
+        qind_url = "https://{}/api/storage/quota/reports?qtree.name={}".format(cluster,qtree_name)
+        response = requests.get(qind_url, headers=headers_inc, verify=False)
+        qind_json = response.json()
         
-        qtq_dt=dict(qtq_json)
-        qtq_rd=qtq_dt['records']
-        
-        for j in qtq_rd:
-            qtr_dt=dict(j)
-            qtr_id= qtr_dt['uuid']
-            quo_url="https://{}/api/storage/quota/reports/{}".format(cluster,qtr_id)
-            response = requests.get(quo_url, headers=headers_inc, verify=False)
-            quo_json = response.json()
-            
-            quo_dt=dict(quo_json)
-            quo_rd=quo_dt['records']
-            quo_num=quo_dt['num_records']
-            qtreelist=[]
-            if quo_num == 0:
-                quota=qtree_name+" No Quota"
-                qtreelist.append(quota)
-                #tab.add_row([volume_name,quota])
-            else: 
-                kidlist=[]
-                for k in quo_rd:
-                    id=dict(k)
-                    kid=id['index']
-                    
-                    qrep_url="https://{}/api/storage/quota/reports/{}/{}".format(cluster,qtr_id,kid)
-                    response = requests.get(qrep_url, headers=headers_inc, verify=False)
-                    qrep_json= response.json()
-                    
-                    quos=qrep_json['space']
-                    quost=dict(quos)
-                    qhard=quost['hard_limit']
-                    conv_hard=(((int(qhard)/1024)/1024)/1024)
-                if qtree_name == "":
-                    qtree_name = qtree_name
-                    #tab.add_row([volume_name,qtree_name])
-        
-                else:
-                    hard_n=str(conv_hard)
-                    qhard_l=qtree_name+ " has " +hard_n
+        if 'error' in qind_json:
+            #print("Vol "+ qvol_n +" id "+str(qid)+" with no Qtree/Quota.")
+            op = str(" id "+str(qid)+" with no Qtree/Quota")
+            output.append(op)
+        elif 'records' in qind_json : 
+            qind_dt = dict(qind_json)
+            qind_rd = qind_dt['records']
+            qind_num = qind_dt['num_records']
+            if qind_num ==0:
+               #print("Vol "+ qvol_n +" has Qtree "+ qtree_name +" with No Quota.")
+               op = str("Qtree "+ qtree_name +" with No Quota")
+               output.append(op)
+            else:
+                for k in qind_rd:
+                   ind = dict(k)
+                   inde = ind['index']
+                   #print(inde)
+                   qu1="https://{}/api/storage/quota/reports/{}/{}".format(cluster,volume_uuid,inde)
+                   response = requests.get(qu1, headers=headers_inc, verify=False)
+                   quores= response.json()
+                   #print("quores", quores)
+                   quores2=dict(quores)
+                   quos=quores['space']
+                   quost=dict(quos)
+                   #print("quost", quost)
+                   hl=quost['hard_limit']
+                   h2=(((int(hl)/1024)/1024)/1024)
+                   #print("Vol "+ qvol_n +" has Qtree "+ qtree_name +" with Quota of "+str(h2))
+                   op = str("Qtree "+ qtree_name +" with Quota of "+str(h2)+" GB")
+                   output.append(op)
+        else:
+            print( " Test")
     
-    return volume_name,qtree_name,quota
+    str_output = ', '.join([str(i) for i in output])
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    return qvol_n, str_output            
+                
 if __name__ == "__main__":
 
     logging.basicConfig(
@@ -312,19 +300,25 @@ if __name__ == "__main__":
         voldet_df = pd.DataFrame(data=voldet,columns=None,index=None)
         vd_df = vd_df.append(voldet_df.T, ignore_index=True)
         
-        nfsc = nfs_connect(cluster,js_vol_name, headers)
-        nfsc_df = pd.DataFrame(data=nfsc,columns=None,index=None)
-        nc_df = nc_df.append(nfsc_df.T, ignore_index=True)
         
-        qtrqo = qtr_quo(cluster,js_vol_name, headers)
-        print(qtrqo)
+        nfsc = nfs_connect(cluster,js_vol_name, headers)
+        #print("nfsc fn out", nfsc)
+        nfsc_df = pd.DataFrame(data=nfsc,columns=None,index=None)
+        #print("nfsc df out", nfsc_df)
+        nc_df = nc_df.append(nfsc_df.T, ignore_index=True)
+        #print("nfsc dfT out", nc_df)
+        
+        qtrqo = qtr_quo(cluster,js_vol_uuid, headers)
+        #print("qtrqo fn out", qtrqo)
         qtrqo_df = pd.DataFrame(data=qtrqo,columns=None,index=None)
-        qq_df = nc_df.append(qtrqo_df.T, ignore_index=True)
-   
+        #print("qtrqo df out", qtrqo_df)
+        qq_df = qq_df.append(qtrqo_df.T, ignore_index=True)
+        #print("qtrqo dfT out", qq_df)
+        
     writer = pd.ExcelWriter(r'C:\\Users\\Administrator.DEMO\\Documents\\GitHub\\test\\VolumeDetails.xlsx')
     vd_df.to_excel(writer,sheet_name='VolDetails', index=False, header=['Volume name', 'Volume UUID', 'Vserver Name', 'Vol State', ' Vol Type', 'Junction Path', 'Read IOPS', 'Write IOPS', 'Other IOPS', 'Total IOPS', 'Read throughput', 'Write throughput', 'Other throughput', 'Total throughput', 'SnapMirror(Y/N)','Source Path', 'Destination Path'])
     nc_df.to_excel(writer,sheet_name='NFS Connected Clients', index=False, header=['Volume name', 'NFS Connections'])
-    qq_df.to_excel(writer,sheet_name='Qtree and Quota', index=False, header=['Volume name', 'Qtree' , 'Quota'])
+    qq_df.to_excel(writer,sheet_name='Qtree and Quota', index=False, header=['Volume name', 'Qtree & Quota'])
     writer.save()
     
 
