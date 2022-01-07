@@ -195,7 +195,7 @@ def nfs_connect(cluster: str, volume_name: str, headers_inc: str):
     
 def qtr_quo(cluster: str, volume_uuid: str, headers_inc: str):
    
-   """Get Qtree and Quota details of Volumes """
+    """Get Qtree and Quota details of Volumes """
    
     qtree_url="https://{}/api/storage/qtrees/{}/*".format(cluster,volume_uuid)
     response = requests.get(qtree_url, headers=headers_inc, verify=False)
