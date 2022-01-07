@@ -3,7 +3,7 @@ ONTAP REST API Sample Scripts
 
 Purpose: Script to list volumes properties using ONTAP REST API.
 
-Usage: csa.py [-h] -s SITE_CODE [-u API_USER] [-p API_PASS]
+Usage: csa.py [-h] -s SITE_CODE -env PROD [-u API_USER] [-p API_PASS]
 """
 
 import pandas as pd
@@ -18,7 +18,7 @@ import logging
 import requests
 ur.disable_warnings()
 
-def find_clstr(cstring: str):
+def find_clstr(site: str, envir: str):
     """Get cluster info from inventory using user inputs"""
     
     wb = xl.load_workbook(r'C:\\Users\\Administrator.DEMO\\Documents\\GitHub\\test\\amgenclstrs.xlsx')
@@ -29,11 +29,12 @@ def find_clstr(cstring: str):
     output = []
     for i in range(1, ws.max_row + 1):
         for j in range(1, ws.max_column + 1):
-            if cstring in ws.cell(i,j).value:
+            if site in ws.cell(i,j).value:
                 #print("found")
                 val = ws.cell(i,j).value   
-                #print(val)                
-                output.append(val)
+                if envir in val:
+                   op = ''.join(val)
+                   output.append(op)
 
     return output
     
@@ -44,8 +45,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="This script will list volumes in a SVM")
     parser.add_argument(
-        "-s", "--site", required=True, help="Site/Location Name"
-    )
+        "-s", "--site", required=True, help="It should be valide site code like uslv,demu,usto so on.."
+                        )
+    parser.add_argument(
+        "-env", "--envir", required=True, help="It should be pfsx or sfsx"  
+                        )
     parser.add_argument(
         "-u",
         "--api_user",
@@ -85,5 +89,5 @@ if __name__ == "__main__":
     #    'accept': "application/json"
     #}
     
-    res = find_clstr(ARGS.site)
+    res = find_clstr(ARGS.site, ARGS.envir)
     print(res)
