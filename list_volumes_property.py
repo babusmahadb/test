@@ -244,7 +244,66 @@ def qtr_quo(cluster: str, volume_uuid: str, headers_inc: str):
     str_output = ', '.join([str(i) for i in output])
     
     return qvol_n, str_output            
-                
+
+def cifs_connect(cluster: str, volume_name: str, headers_inc: str):
+    
+    """ Pulls CIFS details """
+    
+    cifs_url="https://{}/api/protocols/cifs/shares/?volume={}".format(cluster,volume_name)
+    response = requests.get(cifs_url, headers=headers_inc, verify=False)
+    cifs_json = response.json()
+    
+    cifs_num = cifs_json['num_records']
+    CST=[]
+    CSList=[]
+    CSRList=[]
+    CSTList=[]
+    if cifs_num!=0:
+        cifs_rd=cifs_json['records']
+        #print(cifs_rd)
+        for cs in cifs_rd:
+            cifs_dt=dict(cs)
+            cifs_name=cifs_dt['name']
+            CST.append(cifs_name)
+            VS=cifs_dt['svm']
+            VSN=VS['uuid']
+            
+            if "root" in volume_name:
+                CSRT= cifs_name + "Share is in Root Volume"
+                CSRList.append(CSRT)
+                vol_name = volume_name
+                cifs_number = cifs_num
+                cifs_list = CST
+                cifs_acl = CSRList
+            else:
+                CSI="https://{}/api/protocols/cifs/shares/{}/{}".format(cluster,VSN,cifs_name)
+                CSIresponse=requests.get(CSI,headers=headers_inc, verify=False)
+                CSID = CSIresponse.json()
+                CSTN=CSID['name']
+                CSTA=CSID['acls']
+                CSTAT=[]
+                for i in CSTA:
+                    CSTAC=i['permission']
+                    CSTUG=i['user_or_group']
+                    CSTMP="CIFS Share "+cifs_name+" has Permission to "+CSTUG+" with "+CSTAC+ " access"
+                    #print(CSTMP)
+                    CSList.append(CSTMP)
+                vol_name = volume_name
+                cifs_number = cifs_num
+                cifs_list = CST
+                cifs_acl = CSList
+    else:
+        CT = "NA"
+        CSTList.append(CT)
+        vol_name = volume_name
+        cifs_number = cifs_num
+        cifs_list = "NA"
+        cifs_acl = "NA"
+    
+    
+    return vol_name,cifs_number,cifs_list,cifs_acl
+    
+                    
 if __name__ == "__main__":
 
     logging.basicConfig(
@@ -265,8 +324,7 @@ if __name__ == "__main__":
     # Pulls Cluster information using uservol.xls and inventory.xls using find_clstr() and place data to clstrvol.xls 
     cons_df = find_clstr()
 
-    vd_df = nc_df = pd.DataFrame([], columns=None, index=None)
-    qq_df = pd.DataFrame([], columns=None, index=None)
+    vd_df = nc_df = qq_df = cc_df = pd.DataFrame([], columns=None, index=None)
     
     
     for index, row in cons_df.iterrows():
@@ -295,10 +353,17 @@ if __name__ == "__main__":
         qtrqo_df = pd.DataFrame(data=qtrqo,columns=None,index=None)
         qq_df = qq_df.append(qtrqo_df.T, ignore_index=True)
         
+        cifsc = cifs_connect(cluster,js_vol_name, headers)
+        cifsc_df = pd.DataFrame(data=cifsc,columns=None,index=None)
+        cc_df = cc_df.append(cifsc_df.T, ignore_index=True)
+        
+       
+    
     writer = pd.ExcelWriter(r'C:\\Users\\Administrator.DEMO\\Documents\\GitHub\\test\\VolumeDetails.xlsx')
     vd_df.to_excel(writer,sheet_name='VolDetails', index=False, header=['Volume name', 'Volume UUID', 'Vserver Name', 'Vol State', ' Vol Type', 'Junction Path', 'Read IOPS', 'Write IOPS', 'Other IOPS', 'Total IOPS', 'Read throughput', 'Write throughput', 'Other throughput', 'Total throughput', 'SnapMirror(Y/N)','Source Path', 'Destination Path'])
     nc_df.to_excel(writer,sheet_name='NFS Connected Clients', index=False, header=['Volume name', 'NFS Connections'])
     qq_df.to_excel(writer,sheet_name='Qtree and Quota', index=False, header=['Volume name', 'Qtree & Quota'])
+    cc_df.to_excel(writer,sheet_name='CIFS Connected Clients', index=False, header=['Volume name', 'No. of CIFS Shares','CIFS Shares List','ACL'])
     writer.save()
     
 
